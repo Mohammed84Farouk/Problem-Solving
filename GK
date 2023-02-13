@@ -1,0 +1,274 @@
+/*
+                                Sorting
+*/
+
+//                          Sorting array based on another array.
+
+
+//             use & if your base array is in the main's scope,
+//             otherwise(global) don't use it.
+
+sort(arr, arr+n, [&](int a, int b){
+    return otherArr[a]>otherArr[b];
+});
+----------------------------------------------------------------------------------
+//                  Sorting pairs according to first then second elements.
+
+bool comp(pair<int,int>&a, pair<int,int>&b){
+    if(a.first==b.first) return a.second>b.second;
+    return a.first<b.first;
+}
+
+//              Sorting priority queue's elements according to certain criteria.
+
+class comp {
+public:
+    bool operator() (Struct a, Struct b) {
+        return (functionName(a) < functionName(b));
+    }
+};
+priority_queue<Struct, vector<Struct>, comp> q;
+
+
+
+
+
+/*
+            Number Theory
+*/
+deque<int>getBin(ll n){
+    deque<int>res;
+    while(n) res.push_back(n%2), n/=2;
+    reverse(res.begin(), res.end());
+    return res;
+}
+ll add(ll a, ll b){
+    return (a+b+MOD)%MOD;
+}
+ll mul(ll a, ll b){
+    return (a%MOD*b%MOD)%MOD;
+}
+ll FastPower(ll Num, ll Pow){
+    if(Pow == 0) return 1;
+    if(Pow == 1) return Num;
+    ll halfPow = FastPower(Num, Pow / 2);
+    halfPow *= halfPow;
+    if(Pow % 2 != 0) halfPow *= Num;
+    return halfPow;
+}
+ll fastPow(int b, int p, int m){
+    if(p==0) return 1;
+    ll h= fastPow(b,p>>1,m)%m;
+    return ((h*h)%m*((p&1)?b:1)%m)%m;
+}
+
+// if (ans/div)%MOD
+// then call the function like that: (ans*modInverse(div, MOD))%MOD;
+
+unsigned long long power(unsigned long long x, int y, int p){
+    unsigned long long res = 1; // Initialize result
+    x = x % p; // Update x if it is more than or equal to p
+    while (y > 0) {
+        // If y is odd, multiply x with result
+        if (y & 1) res = (res * x) % p;
+        y = y >> 1;
+        x = (x * x) % p;
+    }
+    return res;
+}
+unsigned long long modInverse(unsigned long long n, int p){         //x^(-1)
+    return power(n, p - 2, p);
+}
+unsigned long long nCr(int n, int r){
+	if(r>n) return 0;
+	r=max(r,n-r); //nCr(n,r) = nCr(n,n-r)
+	unsigned long long ans=1,div=1,i=r+1;
+	while(i<=n) {
+		ans*=i, i++;                    // ans=ans%MOD*i%MOD;
+		ans/=div;                       // ans=(ans*modInverse(div, MOD))%MOD;
+		div++;
+	}
+	return ans;
+}
+
+unsigned long long nPr(int n,int r){
+	if(r>n) return 0;
+	unsigned long long p=1,i=n-r+1;
+	while(i<=n) p*=i++;
+	return p;
+}
+
+
+// ll fib[51]={0,1,1,2,3,5,8,13,21,34,55,89,144,233,377,610,987,1597,2584,4181,6765,10946,17711,28657,46368,75025,121393,196418,317811,514229,832040,1346269,2178309,3524578,5702887,9227465,14930352,24157817,39088169,63245986,102334155,165580141,267914296,433494437,701408733,1134903170,1836311903,2971215073,4807526976,7778742049};
+// bool p[51]={0,0,0,1,1,1,0,1,0,0,0,1,0,1,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0};
+// primes till 1e3+3:
+// int prime[175]={2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293, 307, 311, 313, 317, 331, 337, 347, 349, 353, 359, 367, 373, 379, 383, 389, 397, 401, 409, 419, 421, 431, 433, 439, 443, 449, 457, 461, 463, 467, 479, 487, 491, 499, 503, 509, 521, 523, 541, 547, 557, 563, 569, 571, 577, 587, 593, 599, 601, 607, 613, 617, 619, 631, 641, 643, 647, 653, 659, 661, 673, 677, 683, 691, 701, 709, 719, 727, 733, 739, 743, 751, 757, 761, 769, 773, 787, 797, 809, 811, 821, 823, 827, 829, 839, 853, 857, 859, 863, 877, 881, 883, 887, 907, 911, 919, 929, 937, 941, 947, 953, 967, 971, 979, 977, 983, 991, 997,1003};
+
+vector<ll>divs;
+ll Divisors(ll a,ll b, ll x) {
+    ll i,sum=0;
+    bool flag=false;
+    for(i=a;i*i<=b;i++)
+        if(i%x==0)
+            {flag=true;break;}
+    if(flag)
+        for(i=a;i<=b;i+=x)
+            sum+=i;
+    //if(i*i==b)
+    //    sum+=i;
+    return sum;
+}
+
+void prime_factors_sqrt(int n){ //to print uncomment back
+    for (int i=2;i*i<=n;i++)
+		if(n%i==0){
+			int cnt = 0;
+			while(n%i==0){
+				n/= i;
+				cnt++;
+			}
+			//ans.push_back({i,cnt});
+			//nn++;
+			cout<<i<<' '<<cnt<<endl;
+		}
+	if(n>1)
+		cout<<n<<' '<<1<<endl;
+		//{nn++;ans.push_back({n,1});}
+}
+
+bool prime[N];          //N=2e6+9
+vector<int>primes;
+void sieve(ll x) {
+    fill(prime, prime + N, 1);
+    prime[0] = prime[1] = false;
+    for (ll i = 2; i * i < x; i++)
+        if (prime[i]) {
+            primes.push_back((int) i);
+            for (ll j = i * i; j < x; j += i)
+                prime[j] = false;
+        }
+}
+/*
+                            Extended Euclidean GCD
+
+it gives a linear combination of a and b and their gcd:    (gcd = ax + by)
+
+e.g. gcd(888, 54) = 6
+sol:
+            888 = 54(16) + 24
+             54 = 24(2) + 6
+      ---------------------------
+             24 = 6(4) + 0       as we reached zero, so gcd is 6
+
+egcd as linear combination:          6 = 54(33) + 888(-2)
+
+*/
+
+
+ll egcd(ll a, ll b, ll *x, ll *y){
+    if(a==0){
+        *x=0, *y=1;
+        return b;
+    }
+    ll x1, y1;
+    ll g= egcd(b%a, a, &x1, &y1);
+    *x=y1-(b/a)*x1;
+    *y=x1;
+    return g;
+}
+
+
+
+
+/*
+        For Tuples Problems
+*/
+            // i < j < k < l,    a[i]<a[k] & a[j]>a[l]
+int pref[N][N], suff[N][N];
+void TT() {
+    int n;
+    cin >> n;
+    vector<int> v(n+1);
+    for(int i=1;i<=n;i++) cin>>v[i];
+    for (int i = 1; i <= n; i++) {
+        for (int j = 1; j < i; j++) pref[i][j] = pref[i][j - 1] + (v[i] > v[j]);
+        for (int j = n; j > i; j--) suff[i][j] = suff[i][j + 1] + (v[i] > v[j]);
+    }
+    ll ans = 0;
+    for (int i = 2; i < n; i++)
+        for (int j = i + 1; j < n; j++)
+            ans += pref[j][i - 1] * suff[i][j + 1];
+    cout<<ans<<endl;
+    for(int i=0;i<=n;i++)
+        for(int j=0;j<=n;j++)
+            pref[i][j]=suff[i][j]=0;
+}
+
+
+/*
+            Strings Stuff
+*/
+
+ll solve(string &temp, string &s){                  // minimum number of swaps to get a certain order
+    int n=(int)s.size();
+    vector<int>pos[26];                             //for chars positions in the real string
+    for(int i=n-1;i>=0;i--)
+        pos[s[i]-'a'].push_back(i);
+    ordered_set st;
+    ll ans=0;
+    for(int i=0;i<n;i++){
+        int c=temp[i]-'A';
+        ans+=i-st.order_of_key(pos[c].back());
+        st.insert(pos[c].back());
+        pos[c].pop_back();
+    }
+    return ans;
+}
+
+/*
+                Debugging
+1. Using Stress Test:
+        * You have two functions, yours and a trivial correct one.
+        * Create random inputs and test both functions.
+        * Exit only when there is a wrong case and output it.
+*/
+
+int mine(vector<int>&p, vector<int>&a, int d){
+    return mn;
+}
+int Trivial(vector<int>&p, vector<int>&a, int d){
+    return ans;
+}
+void stressTest(){
+    vector<int>p, a;
+    int d;
+    while(true){
+        int n=10;
+        int m=rand()%n+1;
+        d=rand()%n+1;
+        p.resize(n, 0), a.resize(m, 0);
+        map<int, int>vis;
+        for(auto &i:p){                             // A Permutation
+            int temp=rand()%n+1;
+            while (vis[temp] && temp<=n && temp>=1) temp=rand()%n+1;
+            i=temp;
+            vis[temp]=1;
+        }
+        map<int, int>vis2;
+        for(auto &i:a){
+            int temp=rand()%n+1;
+            while (vis2[temp] && temp<=n && temp>=1) temp=rand()%n+1;
+            i=temp;
+            vis2[temp]=1;
+        }
+        if(TT(p, a, d)!=Trivial(p, a, d)) break;                // exits when wrong
+    }
+    for(auto x:p) cout<<x<<" ";
+    cout<<endl;
+    for(auto x:a) cout<<x<<" ";
+    cout<<endl;
+    cout<<d<<endl;
+}
+int main(){
+    stressTest();
+}
