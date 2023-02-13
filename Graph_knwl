@@ -1,0 +1,324 @@
+/*
+                Strongly Connected Components
+
+1.  Kosaraju's Algorithm:    //(un)directed Graph
+        * after building your graph, Run dfs1, then Reverse our
+          edges directions, then run Rfs2 for printing results.
+        * time complexity O(n+m)
+*/
+
+void dfs1(int u, vector<vector<int>>&adj, vector<bool>&vis, stack<int>&stk){
+    vis[u]=true;
+    for(int v:adj[u])
+        if(!vis[v])
+            dfs1(v, adj, vis, stk);
+    stk.push(u);
+}
+void Reverse(vector<vector<int>>&adj, vector<vector<int>>&rev){
+    for(int u=0;u<adj.size();u++)
+        for(int v:adj[u])
+            rev[v].push_back(u);
+}
+void dfs2(int u, vector<vector<int>>&rev, vector<bool>&vis){
+    cout<<u<<" ";
+    vis[u]=true;
+    for(int v:rev[u])
+        if(!vis[v])
+            dfs2(v, rev, vis);
+}
+void SCCsKosaraju(vector<vector<int>>&adj, vector<vector<int>>&rev, vector<bool>&vis){
+    stack<int>stk;
+    for(int u=0;u<adj.size();u++)
+        if(!vis[u])
+            dfs1(u, adj, vis, stk);
+    Reverse(adj, rev);
+    vis.clear();
+    vis.resize(adj.size(), false);
+    cout<<"your SCCs are:"<<endl;
+    while(!stk.empty()){
+        int cur=stk.top();
+        stk.pop();
+        if(!vis[cur]){
+            dfs2(cur, rev, vis);
+            cout<<endl;
+        }
+    }
+}
+int main(){int n, m; cin>>n>>m; vector<vector<int>>adj(n),rev(n); vector<bool>vis(n, false);
+ while(m--){int u, v; cin>>u>>v;adj[--u].push_back(--v);}
+ SCCsKosaraju(adj, rev, vis);
+}
+
+//================================================================================================
+
+/*
+                Strongly Connected Components
+
+2.  Tarjan's Algorithm:    //(un)directed Graph
+        * after building your graph, DFS on undiscovered nodes,
+          add your current node to the stack and calculate it's lowest value,
+          DFS with maintaining the lowest values for neighbouring nodes,
+          if you reached a visited node check if its on the stack or not to decide
+          whether it's back edge (forms a cycle) or cross edge(useless one).
+        * time complexity O(n+m)
+*/
+
+int n, m, id;
+vector<vector<int>>adj;
+vector<bool>vis;
+vector<int>onStack, disc, low;
+stack<int>stk;
+void dfs(int u){
+    disc[u]=low[u]=id++;
+    stk.push(u);
+    onStack[u]=true;
+
+    for(int v:adj[u])
+        if(disc[v]==-1) {
+            dfs(v);
+            low[u] = min(low[u], low[v]);
+        }
+        else if(onStack[v]) low[u]=min(low[u], disc[v]);        // back edge
+    if(disc[u]==low[u]){                                        // if u is the head node of SCC
+        //cout<<"your SCCs are: ";
+        while(stk.top()!=u){
+            int v=stk.top();
+          //  cout<<v<<" ";
+
+            onStack[v]=false;
+            stk.pop();
+            low[v]=disc[u];
+            if(v==u) break;
+        }
+        int v=stk.top();
+        //cout<<v<<endl;
+        onStack[v]=false;
+        stk.pop();
+    }
+}
+void SCCsTarjan(){
+    for(int i=0;i<n;i++)
+        if(disc[i]==-1)
+            dfs(i);
+}
+void TT() {
+    cin>>n>>m;
+    adj.resize(n); vis.resize(n, false);
+    disc.resize(n, -1);         // started from -1 to not conflict with node 0.
+    low.resize(n, 0); onStack.resize(n, false);
+    while(m--){int u, v; cin>>u>>v; adj[--u].push_back(--v);}
+    SCCsTarjan();
+}
+
+//====================================================================================
+
+/*
+        Shortest Path Algorithms:
+
+1. Floyd-Warshall Algorithm:
+		* its MSSP (Multiple Source Shortest Path) algorithm
+        * it gets the shortest path between any pair of nodes using dp;
+        * Time Complexity: O(n^3);          // n less than 300
+
+*/
+
+void Floyd(vector<vector<int>>&distance, vector<vector<int>>&nxt){
+    for(int i=0;i<nxt.size();i++)
+        nxt[i][i]=i;
+    for(int k=0;k<distance.size();k++)
+        for(int u=0;u<distance.size();u++)
+            for(int v=0;v<distance.size();v++){
+                if(distance[u][v]>distance[u][k]+distance[k][v]) {
+                    distance[u][v] = distance[u][k] + distance[k][v];
+                    nxt[u][v]=nxt[u][k];
+                }
+            }
+}
+
+
+
+
+//================================================================================================
+
+/*
+                Max-Flow Min-cuts
+
+1.  Ford-Fulkerson method:                          //directed Graph
+        * it looks for an augmenting path from a source to the sink in an residual network
+    1.1 Edmonds-Karp algorithm:
+        * it gets the augmenting paths for Ford-Fulkerson method using BFS
+        * matrix "capacity" stores the capacity for every pair of vertices which
+          in turn, stores the residual capacity of the network.
+        * function "maxFlow" gets the max-Flow or Min-cuts we're seeking
+        * time complexity O(VE^2); E:edges, V:vertices
+*/
+
+ll bfs(int s, int t, vector<int>&parent, vector<vector<ll>>&adj, vector<vector<ll>>&cap){
+    fill(parent.begin(), parent.end(), -1);
+    parent[s]=-2;
+    queue<pair<int,ll>>q;
+    q.push({s, OO});
+    while(!q.empty()){
+        int cur= q.front().first;
+        ll flow = q.front().second;
+        q.pop();
+        for(ll nxt:adj[cur]){
+            if(parent[nxt]==-1&&cap[cur][nxt]){
+                parent[nxt]=cur;
+                ll newFlow=min(flow, cap[cur][nxt]);
+                if(nxt==t) return newFlow;
+                q.push({nxt, newFlow});
+            }
+        }
+    }
+    return 0;
+}
+ll maxFlow(int s, int t, vector<vector<ll>>&adj, vector<vector<ll>>&cap){
+    ll flow=0, n=(int)adj.size();
+    vector<int>parent(n);
+    ll newFlow = bfs(s, t, parent, adj, cap);
+    while(newFlow){
+        flow+=newFlow;
+        ll cur=t;
+        while(cur!=s) {
+            int prev = parent[cur];
+            cap[prev][cur] -= newFlow;
+            cap[cur][prev] += newFlow;
+            cur = prev;
+        }
+        newFlow = bfs(s, t, parent, adj, cap);
+    }
+    return flow;
+}
+
+int main(){
+    int n, m, u, v, c;cin>>n>>m;vector<vector<ll>>cap(n, vector<ll>(n, 0)), adj(n, vector<ll>(n, 0));
+    while(m--){
+        cin>>u>>v>>c;
+        adj[--u].push_back(--v);
+        adj[v].push_back(u);            // for reversed edges.
+        cap[u][v]+=c;
+    }
+    cout<<maxFlow(0, n-1, adj, cap)<<endl;
+}
+
+//================================================================================================
+
+
+
+//                      DSU Class
+class dsu{
+public:
+    vector<int> par, sz;
+    int n;
+    dsu(int _n) : n(_n){            // in main call dsu _name_(_size_);
+        par.resize(n);
+        sz.resize(n, 1);
+        iota(par.begin(), par.end(), 0);
+    }
+    inline int findPar(int x){
+        return (x==par[x]? x: par[x]= findPar(par[x]));
+    }
+    inline bool join(int a, int b){
+        a= findPar(a);
+        b= findPar(b);
+        if(a!=b){
+            if(sz[a]>sz[b]) swap(a, b);
+            sz[b]+=sz[a];
+            par[a]=b;
+            return true;
+        }
+        return false;
+    }
+};
+
+
+//================================================================================================
+
+/*
+                Lowest Common Ancestor          aka. LCA
+*/
+
+int Log2(int x){return 31-__builtin_clz(x);}
+void dfs(int u, int p, vector<vector<int>>&adj, vector<vector<int>>&anc, vector<int>&depth){
+    for(int v:adj[u]){
+        if(v!=p){
+            depth[v]=depth[u]+1;
+            anc[v][0]=u;
+            for(int i=1;i<Log2((int)depth.size())+1;i++)
+                anc[v][i]=anc[anc[v][i-1]][i-1];
+            dfs(v, u, adj, anc, depth);
+        }
+    }
+}
+int k_anc(int u, int k, int lg, vector<vector<int>>&anc){
+    for(int i=0;i<lg;i++)
+        if(k&(1<<i))
+            u=anc[u][i];
+    return u;
+}
+int LCA(int u, int v, vector<vector<int>>&anc, vector<int>&depth){
+    int lg=(int)anc[0].size();
+    if(depth[u]<depth[v]) swap(u, v);
+    int k=depth[u]-depth[v];
+    u=k_anc(u, k, lg, anc);
+    if(u==v) return u;
+
+    for(int i=lg-1; i>=0; i--)
+        if(anc[u][i]!=anc[v][i])
+            u=anc[u][i], v=anc[v][i];
+    return anc[u][0];
+}
+
+int main(){
+    // after taking tree
+    int root=0;
+    anc[root][0]=root, depth[root]=0;
+    dfs(root, -1);
+}
+
+//================================================================================================
+
+
+//                  Cycles Detection and gathering (visualize the cycles 2D vector to know the elements of each cycle)
+
+void dfsCyclic(int u, int p, vector<vector<int>>&adj, vector<int>&par, vector<int>&color){
+    if(color[u]==2) return;
+    if(color[u]==1){
+        vector<int>v;
+        cycle++;
+        int cur=p;
+        v.push_back(cur);
+        while(cur!=u){
+            cur=par[cur];
+            v.push_back(cur);
+        }
+        cycles.push_back(v);
+        return;
+    }
+    par[u]=p;
+    color[u]=1;
+    for(int v:adj[u])
+        if (v!=par[u])
+            dfsCyclic(v, u, adj, par, color);
+        else{
+            vector<int>_2cyclic={u, v};
+            cycles.push_back(_2cyclic);
+        }
+
+    color[u]=2;
+}
+
+//====================================================================
+
+//                  VISUALIZING THE GRAPH
+
+void visualize(vector<vector<int>>&graph){
+    system("CLS");
+    for(int node=0;node<graph.size();node++){
+        cout<<node<<": ";
+        for(auto x:graph[node])
+            cout<<x<<" ";
+        cout<<endl;
+    }
+}
